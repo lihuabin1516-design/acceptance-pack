@@ -1,0 +1,23 @@
+{
+  "schema": "ccpanes.acceptance.verify.v1",
+  "taskId": "task-fixture",
+  "passed": true,
+  "artifactResults": [
+    { "path": "fixtures/workflow-index.json", "expectedSha256": "fixture", "actualSha256": "fixture", "status": "match" }
+  ],
+  "checkResults": [
+    { "name": "build", "command": "pnpm run build", "status": "pass", "evidence": "synthetic build passed" },
+    { "name": "tests", "command": "pnpm test", "status": "pass", "evidence": "synthetic tests passed" }
+  ],
+  "truthLayers": [],
+  "summary": {
+    "passed": true,
+    "completionAllowed": true,
+    "requiredLayerCount": 1,
+    "failingLayerCount": 0,
+    "blockedLayerCount": 0,
+    "notRunLayerCount": 0
+  },
+  "failures": [],
+  "verifiedAt": "2026-08-27T12:00:00Z"
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "ccpanes.acceptance.request.v1",
+  "taskId": "task-fixture",
+  "runId": "run-fixture",
+  "workspaceId": "workspace-fixture",
+  "sources": [
+    {
+      "kind": "workflow-index",
+      "path": "fixtures/workflow-index.json",
+      "sha256": "sha256:22079c9bf8044fabc32c327dee09bbec4430f0083188cadc0dcf5b2771f06529",
+      "required": true
+    },
+    {
+      "kind": "acceptance-evidence",
+      "path": "fixtures/native-acceptance.json",
+      "sha256": "sha256:973976c08f89669b8f03b2fc6eeed0182927f97304f4ae3e2eca47c6dabca665",
+      "required": true
+    },
+    {
+      "kind": "acceptance-verification",
+      "path": "fixtures/native-verification.json",
+      "sha256": "sha256:80f01018495fab4b655dedb631e46834c7796ab15e6f981c6e48ca43e232cea0",
+      "required": true
+    }
+  ]
+}

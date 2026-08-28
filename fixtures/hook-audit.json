@@ -1,0 +1,8 @@
+{
+  "schema": "ccpanes.audit.summary.v1",
+  "taskId": "task-fixture",
+  "runId": "run-fixture",
+  "event": "acceptance",
+  "result": "pass",
+  "safeSummary": "Synthetic hook audit accepted."
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "ccpanes.acceptance.v1",
+  "taskId": "task-fixture",
+  "worktreeRoot": "D:/synthetic-fixture",
+  "branch": null,
+  "head": null,
+  "artifactHashes": [],
+  "checks": [
+    { "name": "build", "command": "pnpm run build", "result": "pass", "evidence": "synthetic build passed" },
+    { "name": "tests", "command": "pnpm test", "result": "pass", "evidence": "synthetic tests passed" }
+  ],
+  "truthLayers": [
+    { "name": "task-scope", "state": "pass", "required": true, "evidence": "task bound", "reason": "scope" },
+    { "name": "repo-gates", "state": "pass", "required": true, "evidence": "checks pass", "reason": "gates" },
+    { "name": "completion", "state": "pass", "required": true, "evidence": "all required layers pass", "reason": "completion" }
+  ],
+  "summary": {
+    "passed": true,
+    "completionAllowed": true,
+    "requiredLayerCount": 3,
+    "failingLayerCount": 0,
+    "blockedLayerCount": 0,
+    "notRunLayerCount": 0
+  },
+  "recordedAt": "2026-08-27T12:00:00Z"
+}

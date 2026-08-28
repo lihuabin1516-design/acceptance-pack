@@ -1,0 +1,19 @@
+{
+  "schema": "ccpanes.verification.summary.v1",
+  "taskId": "task-fixture",
+  "runId": "run-fixture",
+  "checks": {
+    "build": { "status": "pass", "safeSummary": "TypeScript build passed." },
+    "typecheck": { "status": "pass", "safeSummary": "Typecheck passed." },
+    "lint": { "status": "pass", "safeSummary": "Lint passed." },
+    "tests": { "status": "pass", "safeSummary": "All tests passed." },
+    "smoke": { "status": "pass", "safeSummary": "Production smoke passed." },
+    "scope": { "status": "pass", "safeSummary": "Only task-scoped files changed." },
+    "privacy": { "status": "pass", "safeSummary": "Privacy scan passed." }
+  },
+  "privacy": {
+    "secretsStored": false,
+    "piiStored": false,
+    "fullTranscriptsStored": false
+  }
+}

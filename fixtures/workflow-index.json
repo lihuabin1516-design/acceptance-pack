@@ -1,0 +1,10 @@
+{
+  "schema": "ccpanes.workflow.index.v1",
+  "generatedAt": "2026-08-27T12:00:00Z",
+  "status": "ready",
+  "taskId": "task-fixture",
+  "runId": "run-fixture",
+  "links": {},
+  "artifacts": [],
+  "advisoryOnly": true
+}

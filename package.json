@@ -1,0 +1,20 @@
+{
+  "name": "ccpanes-acceptance-pack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only acceptance evidence pack for CC-Panes workflows.",
+  "main": "dist/src/index.js",
+  "bin": { "ccpanes-acceptance": "dist/src/cli.js" },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm run build && node --test dist/tests/*.test.js",
+    "lint": "node scripts/lint.cjs",
+    "schema:check": "node scripts/schema-check.cjs",
+    "smoke:production": "pnpm run build && node dist/src/cli.js validate-request fixtures/request.json --root . && node dist/src/cli.js compose fixtures/request.json --root . --output out/acceptance-pack.json && node dist/src/cli.js validate out/acceptance-pack.json --root . && node dist/src/cli.js explain out/acceptance-pack.json --root . && node dist/src/cli.js validate-request fixtures/native-request.json --root . && node dist/src/cli.js compose fixtures/native-request.json --root . --output out/native-acceptance-pack.json && node dist/src/cli.js validate out/native-acceptance-pack.json --root . && node dist/src/cli.js explain out/native-acceptance-pack.json --root . && pnpm run schema:check"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}
