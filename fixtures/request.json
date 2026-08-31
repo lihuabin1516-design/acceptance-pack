@@ -7,25 +7,25 @@
     {
       "kind": "workflow-index",
       "path": "fixtures/workflow-index.json",
-      "sha256": "sha256:22079c9bf8044fabc32c327dee09bbec4430f0083188cadc0dcf5b2771f06529",
+      "sha256": "sha256:6e46d1a32787bb9dbb6c506cffe903d364033c817d6e2c7a0244f6d24e1ae27d",
       "required": true
     },
     {
       "kind": "verification-summary",
       "path": "fixtures/verification.json",
-      "sha256": "sha256:95a2089a64c2f213e7c86a9a04712d2879a909c19d208c1c8c9927e1033621cb",
+      "sha256": "sha256:48c912a02a2379aacd015bac0638277caa06b156cf1702479183e3f89f61713b",
       "required": true
     },
     {
       "kind": "audit",
       "path": "fixtures/hook-audit.json",
-      "sha256": "sha256:cf91a12e6fdedc2898760a82295ee134885e8e3e5234a318f88bbff86752b6be",
+      "sha256": "sha256:366cb8b0653442489ab91dd309f31802b70bab53d0f7ba9f39b72b81518e7fd3",
       "required": true
     },
     {
       "kind": "audit",
       "path": "fixtures/post-tool-audit.jsonl",
-      "sha256": "sha256:1e90c308cdd91812c8767c90030cce71dae5cd427455e598bfa9bca59173933b",
+      "sha256": "sha256:721433eaff403eff491c3a6c36f0379b5bfde79dba540b33ddddb321ff4e264f",
       "required": true
     }
   ]

@@ -6,6 +6,11 @@ verification，以及可选 audit 引用，逐个检查路径、SHA-256、身份
 结果，输出可审查的 `ccpanes.acceptance.pack.v1`。
 
 它解决的是“把多个已存在的证据放进一个可交接包”，不是“重新判断系统是否完成”。
+
+从 `0.1.1` 起，它也可以消费脱敏的 `ccpanes.bootstrap.evidence.v1`，用于区分
+“有 threadId”与“任务真的启动”：只有观察到首个 activity 且确认读取
+`HANDOFF.md`，`bootstrapStarted` 才为 `true`。`BOOTSTRAP_PROTOCOL_ERROR` 会保留
+原始类型化错误码并使 pack 为 `blocked`；本项目仍然只是 advisory projection。
 Hooks 仍是 scope、permission、hard gate、audit 和 completion truth 的权威；
 本项目不会制造第二套 acceptance authority。
 

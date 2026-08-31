@@ -7,19 +7,19 @@
     {
       "kind": "workflow-index",
       "path": "fixtures/workflow-index.json",
-      "sha256": "sha256:22079c9bf8044fabc32c327dee09bbec4430f0083188cadc0dcf5b2771f06529",
+      "sha256": "sha256:6e46d1a32787bb9dbb6c506cffe903d364033c817d6e2c7a0244f6d24e1ae27d",
       "required": true
     },
     {
       "kind": "acceptance-evidence",
       "path": "fixtures/native-acceptance.json",
-      "sha256": "sha256:973976c08f89669b8f03b2fc6eeed0182927f97304f4ae3e2eca47c6dabca665",
+      "sha256": "sha256:e35f519942880722e946f79b3ba7368d7ac356d7e61dde63df28026a7859af8a",
       "required": true
     },
     {
       "kind": "acceptance-verification",
       "path": "fixtures/native-verification.json",
-      "sha256": "sha256:80f01018495fab4b655dedb631e46834c7796ab15e6f981c6e48ca43e232cea0",
+      "sha256": "sha256:a6d8d0e6cef5186b81d128fd2a10fcc244b31def3e943d9442a01c0855c117b2",
       "required": true
     }
   ]

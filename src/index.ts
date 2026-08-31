@@ -3,7 +3,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 type CheckStatus = "pass" | "fail" | "blocked" | "not-run";
-type SourceKind = "workflow-index" | "verification-summary" | "acceptance-evidence" | "acceptance-verification" | "audit";
+type SourceKind = "workflow-index" | "verification-summary" | "acceptance-evidence" | "acceptance-verification" | "bootstrap-evidence" | "audit";
 type SourceRef = { kind: SourceKind; path: string; sha256: string; required: boolean };
 
 export interface AcceptanceRequest {
@@ -22,6 +22,8 @@ export interface AcceptancePack {
   runId: string;
   workspaceId: string;
   workflowStatus: string;
+  bootstrapStatus?: string;
+  bootstrapStarted?: boolean;
   checks: Record<string, CheckStatus>;
   completionAllowed?: boolean;
   truthLayers?: Array<{ name: string; state: string; required: boolean }>;
@@ -58,7 +60,7 @@ function assertRequest(value: unknown): asserts value is AcceptanceRequest {
     if (!source || typeof source !== "object" || Array.isArray(source)) throw new Error("INVALID_REQUEST");
     const item = source as Partial<SourceRef>;
     if (Object.keys(item).some(key => !["kind", "path", "sha256", "required"].includes(key))) throw new Error("INVALID_REQUEST");
-    if (!["workflow-index", "verification-summary", "acceptance-evidence", "acceptance-verification", "audit"].includes(String(item.kind)) || typeof item.path !== "string" || !item.path || typeof item.sha256 !== "string" || !digest.test(item.sha256) || typeof item.required !== "boolean") throw new Error("INVALID_REQUEST");
+    if (!["workflow-index", "verification-summary", "acceptance-evidence", "acceptance-verification", "bootstrap-evidence", "audit"].includes(String(item.kind)) || typeof item.path !== "string" || !item.path || typeof item.sha256 !== "string" || !digest.test(item.sha256) || typeof item.required !== "boolean") throw new Error("INVALID_REQUEST");
     if (kinds.has(item.kind as SourceKind) && item.kind !== "audit") throw new Error("INVALID_REQUEST");
     kinds.add(item.kind as SourceKind);
   }
@@ -129,6 +131,15 @@ function validateIdentity(kind: SourceKind, value: unknown, request: AcceptanceR
     if (item.schema !== "ccpanes.acceptance.verify.v1" || item.taskId !== request.taskId || typeof item.passed !== "boolean" || !Array.isArray(item.checkResults) || !Array.isArray(item.artifactResults)) throw new Error("IDENTITY_CONFLICT");
     return undefined;
   }
+  if (kind === "bootstrap-evidence") {
+    const item = objectValue(value);
+    if (item.schema !== "ccpanes.bootstrap.evidence.v1" || item.taskId !== request.taskId || typeof item.runId !== "string" ||
+      !["CREATED", "BOOTSTRAPPING", "ACTIVE", "SYSTEM_ERROR", "BOOTSTRAP_PROTOCOL_ERROR", "COMPLETED"].includes(String(item.status)) ||
+      typeof item.threadIdDigest !== "string" || typeof item.firstActivityObserved !== "boolean" ||
+      typeof item.handoffRead !== "boolean" || (item.protocolErrorCode !== null && typeof item.protocolErrorCode !== "string")) throw new Error("INVALID_BOOTSTRAP_EVIDENCE");
+    if (item.runId !== request.runId) throw new Error("IDENTITY_CONFLICT");
+    return undefined;
+  }
   const values = Array.isArray(value) ? value : [value];
   for (const item of values) {
     if (item && typeof item === "object") {
@@ -149,6 +160,8 @@ export async function composeRequest(request: AcceptanceRequest, root: string, g
   let completionAllowed: boolean | undefined;
   let truthLayers: AcceptancePack["truthLayers"];
   let artifactResults: AcceptancePack["artifactResults"];
+  let bootstrapStatus: string | undefined;
+  let bootstrapStarted: boolean | undefined;
   const blockingReasons: string[] = [];
 
   for (const source of request.sources) {
@@ -192,6 +205,15 @@ export async function composeRequest(request: AcceptanceRequest, root: string, g
         if (layer.required === true && layer.state !== "pass") blockingReasons.push(`TRUTH_LAYER_${String(layer.name).toUpperCase()}:${String(layer.state)}`);
       }
     }
+    if (source.kind === "bootstrap-evidence") {
+      const bootstrap = objectValue(parsed);
+      bootstrapStatus = String(bootstrap.status);
+      bootstrapStarted = bootstrap.firstActivityObserved === true && bootstrap.handoffRead === true &&
+        (bootstrap.status === "ACTIVE" || bootstrap.status === "COMPLETED");
+      if (bootstrapStatus === "BOOTSTRAP_PROTOCOL_ERROR") {
+        blockingReasons.push(`BOOTSTRAP_PROTOCOL_ERROR:${bootstrap.protocolErrorCode ?? "UNKNOWN"}`);
+      }
+    }
     if (source.kind === "acceptance-verification") {
       const verification = objectValue(parsed);
       const nativeChecks = verification.checkResults as Array<Record<string, unknown>>;
@@ -209,7 +231,7 @@ export async function composeRequest(request: AcceptanceRequest, root: string, g
 
   if (workflowStatus === "blocked" || workflowStatus === "unknown") blockingReasons.push(`WORKFLOW_${workflowStatus.toUpperCase()}`);
   const status = blockingReasons.length ? "blocked" : (workflowStatus === "ready" && missingOptional.length === 0 ? "ready" : "partial");
-  return { schema: "ccpanes.acceptance.pack.v1", generatedAt, status, taskId: request.taskId, runId: request.runId, workspaceId: request.workspaceId, workflowStatus, checks, ...(completionAllowed === undefined ? {} : { completionAllowed }), ...(truthLayers === undefined ? {} : { truthLayers }), ...(artifactResults === undefined ? {} : { artifactResults }), sources, blockingReasons, missingOptional, advisoryOnly: true };
+  return { schema: "ccpanes.acceptance.pack.v1", generatedAt, status, taskId: request.taskId, runId: request.runId, workspaceId: request.workspaceId, workflowStatus, checks, ...(bootstrapStatus === undefined ? {} : { bootstrapStatus, bootstrapStarted }), ...(completionAllowed === undefined ? {} : { completionAllowed }), ...(truthLayers === undefined ? {} : { truthLayers }), ...(artifactResults === undefined ? {} : { artifactResults }), sources, blockingReasons, missingOptional, advisoryOnly: true };
 }
 
 export function validatePack(value: unknown): value is AcceptancePack {
@@ -224,6 +246,7 @@ export function validatePack(value: unknown): value is AcceptancePack {
   })) return false;
   if (!Array.isArray(pack.blockingReasons) || !pack.blockingReasons.every(reason => typeof reason === "string")) return false;
   if (!Array.isArray(pack.missingOptional) || !pack.missingOptional.every(path => typeof path === "string")) return false;
+  if (pack.bootstrapStatus !== undefined && (typeof pack.bootstrapStatus !== "string" || typeof pack.bootstrapStarted !== "boolean")) return false;
   if (pack.completionAllowed !== undefined && typeof pack.completionAllowed !== "boolean") return false;
   if (pack.truthLayers !== undefined && (!Array.isArray(pack.truthLayers) || !pack.truthLayers.every(layer => {
     if (!layer || typeof layer !== "object" || Array.isArray(layer)) return false;

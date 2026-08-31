@@ -129,6 +129,45 @@ test("blocks native hooks verification when an artifact does not match", async (
   assert.equal(pack.artifactResults?.[0]?.status, "mismatch");
 });
 
+test("consumes bootstrap evidence and exposes started only after first activity", async () => {
+  const bootstrap = {
+    schema: "ccpanes.bootstrap.evidence.v1",
+    taskId: "task-001",
+    runId: "run-001",
+    status: "ACTIVE",
+    threadIdDigest: digest,
+    firstActivityObserved: true,
+    handoffRead: true,
+    protocolErrorCode: null
+  };
+  const data = await setup({ "workflow.json": workflow, "verification.json": verification(), "bootstrap.json": bootstrap });
+  const refs = [...data.refs, { kind: "bootstrap-evidence" as const, path: "bootstrap.json", sha256: sha256(JSON.stringify(bootstrap)), required: true }];
+  const pack = await composeRequest(request(refs), data.root);
+  assert.equal(pack.bootstrapStatus, "ACTIVE");
+  assert.equal(pack.bootstrapStarted, true);
+  assert.equal(pack.status, "ready");
+});
+
+test("blocks bootstrap protocol errors and preserves the typed reason", async () => {
+  const bootstrap = {
+    schema: "ccpanes.bootstrap.evidence.v1",
+    taskId: "task-001",
+    runId: "run-001",
+    status: "BOOTSTRAP_PROTOCOL_ERROR",
+    threadIdDigest: digest,
+    firstActivityObserved: false,
+    handoffRead: false,
+    protocolErrorCode: "FUNCTION_CALL_OUTPUT_CALL_ID_MISSING"
+  };
+  const data = await setup({ "workflow.json": workflow, "verification.json": verification(), "bootstrap.json": bootstrap });
+  const refs = [...data.refs, { kind: "bootstrap-evidence" as const, path: "bootstrap.json", sha256: sha256(JSON.stringify(bootstrap)), required: true }];
+  const pack = await composeRequest(request(refs), data.root);
+  assert.equal(pack.status, "blocked");
+  assert.equal(pack.bootstrapStatus, "BOOTSTRAP_PROTOCOL_ERROR");
+  assert.equal(pack.bootstrapStarted, false);
+  assert.ok(pack.blockingReasons.includes("BOOTSTRAP_PROTOCOL_ERROR:FUNCTION_CALL_OUTPUT_CALL_ID_MISSING"));
+});
+
 test("publishes a JSON Schema matching the emitted pack contract", async () => {
   const schema = JSON.parse(await readFile(join(process.cwd(), "schemas", "ccpanes.acceptance.pack.v1.schema.json"), "utf8"));
   assert.equal(schema.$id, "ccpanes.acceptance.pack.v1");

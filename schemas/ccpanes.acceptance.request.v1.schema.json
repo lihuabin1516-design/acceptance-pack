@@ -18,7 +18,7 @@
         "additionalProperties": false,
         "required": ["kind", "path", "sha256", "required"],
         "properties": {
-          "kind": { "enum": ["workflow-index", "verification-summary", "acceptance-evidence", "acceptance-verification", "audit"] },
+          "kind": { "enum": ["workflow-index", "verification-summary", "acceptance-evidence", "acceptance-verification", "bootstrap-evidence", "audit"] },
           "path": { "type": "string", "minLength": 1 },
           "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
           "required": { "type": "boolean" }

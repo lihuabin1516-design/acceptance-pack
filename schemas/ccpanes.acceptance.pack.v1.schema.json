@@ -26,6 +26,8 @@
     "runId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" },
     "workspaceId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" },
     "workflowStatus": { "type": "string" },
+    "bootstrapStatus": { "type": "string", "enum": ["CREATED", "BOOTSTRAPPING", "ACTIVE", "SYSTEM_ERROR", "BOOTSTRAP_PROTOCOL_ERROR", "COMPLETED"] },
+    "bootstrapStarted": { "type": "boolean" },
     "checks": {
       "type": "object",
       "additionalProperties": { "enum": ["pass", "fail", "blocked", "not-run"] }
@@ -63,7 +65,7 @@
         "additionalProperties": false,
         "required": ["kind", "path", "sha256"],
         "properties": {
-          "kind": { "enum": ["workflow-index", "verification-summary", "acceptance-evidence", "acceptance-verification", "audit"] },
+          "kind": { "enum": ["workflow-index", "verification-summary", "acceptance-evidence", "acceptance-verification", "bootstrap-evidence", "audit"] },
           "path": { "type": "string" },
           "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
         }
