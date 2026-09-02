@@ -113,6 +113,76 @@ test("blocks native hooks evidence when a check was not run", async () => {
   assert.ok(pack.blockingReasons.includes("CHECK_NOT_RUN:tests"));
 });
 
+test("rejects native acceptance evidence with an unknown optional truth-layer state", async () => {
+  const nativeEvidence = {
+    schema: "ccpanes.acceptance.v1", taskId: "task-001", worktreeRoot: "D:/fixture", branch: null, head: null, artifactHashes: [],
+    checks: [{ name: "tests", command: "pnpm test", result: "pass", evidence: "tests passed" }],
+    truthLayers: [{ name: "completion", state: "bogus", required: false }],
+    summary: { passed: true, completionAllowed: true, requiredLayerCount: 0, failingLayerCount: 0, blockedLayerCount: 0, notRunLayerCount: 0 },
+    recordedAt: "2026-08-27T12:00:00Z"
+  };
+  const data = await setup({ "workflow.json": workflow, "acceptance.json": nativeEvidence });
+  const refs = data.refs.map(ref => ref.path === "acceptance.json" ? { ...ref, kind: "acceptance-evidence" as const } : ref);
+  await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_EVIDENCE/);
+});
+
+test("rejects duplicate native acceptance check names instead of hiding an earlier failure", async () => {
+  const nativeEvidence = {
+    schema: "ccpanes.acceptance.v1", taskId: "task-001", worktreeRoot: "D:/fixture", branch: null, head: null, artifactHashes: [],
+    checks: [
+      { name: "tests", command: "pnpm test", result: "fail", evidence: "tests failed" },
+      { name: "tests", command: "pnpm test", result: "pass", evidence: "tests passed" }
+    ],
+    truthLayers: [{ name: "completion", state: "pass", required: true }],
+    summary: { passed: true, completionAllowed: true, requiredLayerCount: 1, failingLayerCount: 0, blockedLayerCount: 0, notRunLayerCount: 0 },
+    recordedAt: "2026-08-27T12:00:00Z"
+  };
+  const data = await setup({ "workflow.json": workflow, "acceptance.json": nativeEvidence });
+  const refs = data.refs.map(ref => ref.path === "acceptance.json" ? { ...ref, kind: "acceptance-evidence" as const } : ref);
+  await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_EVIDENCE/);
+});
+
+test("rejects duplicate native verification check names instead of hiding a later failure", async () => {
+  const nativeVerification = {
+    schema: "ccpanes.acceptance.verify.v1", taskId: "task-001", passed: true,
+    artifactResults: [{ path: "artifact.json", status: "match" }],
+    checkResults: [
+      { name: "tests", command: "pnpm test", status: "pass", evidence: "tests passed" },
+      { name: "tests", command: "pnpm test", status: "fail", evidence: "tests failed" }
+    ],
+    truthLayers: [], summary: { passed: true, completionAllowed: true, requiredLayerCount: 0, failingLayerCount: 0, blockedLayerCount: 0, notRunLayerCount: 0 },
+    verifiedAt: "2026-08-27T12:00:00Z"
+  };
+  const data = await setup({ "workflow.json": workflow, "acceptance-verify.json": nativeVerification });
+  const refs = data.refs.map(ref => ref.path === "acceptance-verify.json" ? { ...ref, kind: "acceptance-verification" as const } : ref);
+  await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_VERIFICATION/);
+});
+
+test("rejects native hooks verification with an unknown artifact status", async () => {
+  const nativeVerification = {
+    schema: "ccpanes.acceptance.verify.v1", taskId: "task-001", passed: true,
+    artifactResults: [{ path: "artifact.json", status: "weird" }],
+    checkResults: [{ name: "tests", command: "pnpm test", status: "pass", evidence: "passed" }],
+    truthLayers: [], summary: { passed: true, completionAllowed: true, requiredLayerCount: 0, failingLayerCount: 0, blockedLayerCount: 0, notRunLayerCount: 0 },
+    verifiedAt: "2026-08-27T12:00:00Z"
+  };
+  const data = await setup({ "workflow.json": workflow, "acceptance-verify.json": nativeVerification });
+  const refs = data.refs.map(ref => ref.path === "acceptance-verify.json" ? { ...ref, kind: "acceptance-verification" as const } : ref);
+  await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_VERIFICATION/);
+});
+
+test("rejects native hooks verification before source processing when summary is missing", async () => {
+  const nativeVerification = {
+    schema: "ccpanes.acceptance.verify.v1", taskId: "task-001", passed: true,
+    artifactResults: [{ path: "artifact.json", status: "match" }],
+    checkResults: [{ name: "tests", command: "pnpm test", status: "pass", evidence: "passed" }],
+    truthLayers: []
+  };
+  const data = await setup({ "workflow.json": workflow, "acceptance-verify.json": nativeVerification });
+  const refs = data.refs.map(ref => ref.path === "acceptance-verify.json" ? { ...ref, kind: "acceptance-verification" as const } : ref);
+  await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_VERIFICATION/);
+});
+
 test("blocks native hooks verification when an artifact does not match", async () => {
   const nativeVerification = {
     schema: "ccpanes.acceptance.verify.v1", taskId: "task-001", passed: false,
@@ -248,4 +318,47 @@ test("runtime request validation rejects malformed manifests without reading sou
     ...valid,
     sources: [{ kind: "workflow-index", path: "workflow.json", sha256: digest, required: true }]
   }), false);
+});
+
+test("rejects malformed native acceptance evidence elements with typed errors", async () => {
+  const base = {
+    schema: "ccpanes.acceptance.v1",
+    taskId: "task-001",
+    worktreeRoot: "D:/fixture",
+    branch: null,
+    head: null,
+    artifactHashes: [],
+    checks: [{ name: "build", command: "pnpm build", result: "pass", evidence: "passed" }],
+    truthLayers: [{ name: "completion", state: "pass", required: true }],
+    summary: { passed: true, completionAllowed: true },
+    recordedAt: "2026-08-27T12:00:00Z"
+  };
+  for (const malformed of [
+    { ...base, truthLayers: [{ name: "completion", state: "pass", required: "yes" }] },
+    { ...base, checks: [{ name: "build", command: "pnpm build" }] }
+  ]) {
+    const data = await setup({ "workflow.json": workflow, "acceptance.json": malformed });
+    const refs = data.refs.map(ref => ref.path === "acceptance.json" ? { ...ref, kind: "acceptance-evidence" as const } : ref);
+    await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_EVIDENCE/);
+  }
+});
+
+test("rejects malformed native verification check and artifact elements with typed errors", async () => {
+  const base = {
+    schema: "ccpanes.acceptance.verify.v1",
+    taskId: "task-001",
+    passed: true,
+    artifactResults: [{ path: "artifact.json", expectedSha256: digest, actualSha256: digest, status: "match" }],
+    checkResults: [{ name: "tests", command: "pnpm test", status: "pass", evidence: "passed" }],
+    summary: { passed: true, completionAllowed: true },
+    verifiedAt: "2026-08-27T12:00:00Z"
+  };
+  for (const malformed of [
+    { ...base, checkResults: [{ name: "tests", command: "pnpm test", evidence: "passed" }] },
+    { ...base, artifactResults: [{ path: "artifact.json" }] }
+  ]) {
+    const data = await setup({ "workflow.json": workflow, "acceptance-verify.json": malformed });
+    const refs = data.refs.map(ref => ref.path === "acceptance-verify.json" ? { ...ref, kind: "acceptance-verification" as const } : ref);
+    await assert.rejects(() => composeRequest(request(refs), data.root), /INVALID_ACCEPTANCE_VERIFICATION/, `malformed verification: ${JSON.stringify(malformed)}`);
+  }
 });

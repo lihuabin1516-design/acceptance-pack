@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
+export * from "./globalWorkflowAcceptance";
+
 type CheckStatus = "pass" | "fail" | "blocked" | "not-run";
 type SourceKind = "workflow-index" | "verification-summary" | "acceptance-evidence" | "acceptance-verification" | "bootstrap-evidence" | "audit";
 type SourceRef = { kind: SourceKind; path: string; sha256: string; required: boolean };
@@ -104,6 +106,42 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function validateNativeChecks(value: unknown, statusKey: "result" | "status", errorCode: string): void {
+  if (!Array.isArray(value)) throw new Error(errorCode);
+  const names = new Set<string>();
+  for (const check of value) {
+    if (!check || typeof check !== "object" || Array.isArray(check)) throw new Error(errorCode);
+    const item = check as Record<string, unknown>;
+    if (typeof item.name !== "string" || !item.name || typeof item[statusKey] !== "string" ||
+      !["pass", "fail", "blocked", "not-run"].includes(item[statusKey] as string) ||
+      names.has(item.name) ||
+      (item.command !== undefined && typeof item.command !== "string") ||
+      (item.evidence !== undefined && typeof item.evidence !== "string")) throw new Error(errorCode);
+    names.add(item.name);
+  }
+}
+
+function validateNativeTruthLayers(value: unknown, errorCode: string): void {
+  if (!Array.isArray(value)) throw new Error(errorCode);
+  for (const layer of value) {
+    if (!layer || typeof layer !== "object" || Array.isArray(layer)) throw new Error(errorCode);
+    const item = layer as Record<string, unknown>;
+    if (typeof item.name !== "string" || !item.name || typeof item.state !== "string" ||
+      !["pass", "fail", "blocked", "not-run"].includes(item.state) ||
+      typeof item.required !== "boolean") throw new Error(errorCode);
+  }
+}
+
+function validateNativeArtifacts(value: unknown, errorCode: string): void {
+  if (!Array.isArray(value)) throw new Error(errorCode);
+  for (const artifact of value) {
+    if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) throw new Error(errorCode);
+    const item = artifact as Record<string, unknown>;
+    if (typeof item.path !== "string" || !item.path || typeof item.status !== "string" ||
+      !["match", "mismatch"].includes(item.status)) throw new Error(errorCode);
+  }
+}
+
 function validateIdentity(kind: SourceKind, value: unknown, request: AcceptanceRequest): string | undefined {
   if (kind === "workflow-index") {
     const item = objectValue(value);
@@ -124,11 +162,18 @@ function validateIdentity(kind: SourceKind, value: unknown, request: AcceptanceR
     const item = objectValue(value);
     const summary = objectValue(item.summary);
     if (item.schema !== "ccpanes.acceptance.v1" || item.taskId !== request.taskId || !Array.isArray(item.checks) || !Array.isArray(item.truthLayers) || typeof summary.completionAllowed !== "boolean") throw new Error("IDENTITY_CONFLICT");
+    validateNativeChecks(item.checks, "result", "INVALID_ACCEPTANCE_EVIDENCE");
+    validateNativeTruthLayers(item.truthLayers, "INVALID_ACCEPTANCE_EVIDENCE");
     return undefined;
   }
   if (kind === "acceptance-verification") {
     const item = objectValue(value);
-    if (item.schema !== "ccpanes.acceptance.verify.v1" || item.taskId !== request.taskId || typeof item.passed !== "boolean" || !Array.isArray(item.checkResults) || !Array.isArray(item.artifactResults)) throw new Error("IDENTITY_CONFLICT");
+    if (item.schema !== "ccpanes.acceptance.verify.v1" || item.taskId !== request.taskId || typeof item.passed !== "boolean" ||
+      !Array.isArray(item.checkResults) || !Array.isArray(item.artifactResults) ||
+      !item.summary || typeof item.summary !== "object" || Array.isArray(item.summary)) throw new Error("INVALID_ACCEPTANCE_VERIFICATION");
+    validateNativeChecks(item.checkResults, "status", "INVALID_ACCEPTANCE_VERIFICATION");
+    validateNativeArtifacts(item.artifactResults, "INVALID_ACCEPTANCE_VERIFICATION");
+    if (item.truthLayers !== undefined) validateNativeTruthLayers(item.truthLayers, "INVALID_ACCEPTANCE_VERIFICATION");
     return undefined;
   }
   if (kind === "bootstrap-evidence") {

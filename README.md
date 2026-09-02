@@ -27,6 +27,15 @@ Hooks 仍是 scope、permission、hard gate、audit 和 completion truth 的权�
 明确不执行命令、不启动进程、不控制 Session/Worker、不决定权限、不存储 transcript、
 不写入 Skills/AGENTS/hooks/config/memory/远端仓库，也不读取用户项目未声明文件。
 
+本包另提供 `projectGlobalWorkflowAcceptance` 纯函数，用于离线投影已生成且已脱敏的
+workflow gate evidence。它只输出 `MCP_DISCOVERY`、`PREFLIGHT`、`WORKFLOW` 或
+`ACCEPTANCE` 的下一 gate、`acceptanceEligibility`、`productionStatus`、
+`authorityLabels`、逐项 provenance 和阻塞原因；`projectionReady: true` 仅表示
+离线 acceptance projection eligible，绝不表示 live inventory、preflight、
+Worker、Session 或 production ready。该 API 不调用 MCP、Coordinator、CC-Panes、
+Worker、Session、hooks executable、filesystem、network、shell 或 process，也不写回
+任何上游来源。
+
 ## 输入合同
 
 请求 schema 为 `ccpanes.acceptance.request.v1`：
@@ -121,6 +130,18 @@ JSON Schema、隐私规则、身份规则、CLI smoke 和 README。
 贡献提交至少包含：权威边界说明、失败/partial/blocked 语义、隐私影响、schema
 变更、测试命令和与 workflow-adapter 的兼容说明。不得通过“补字段”绕过 Hooks 的
 completion gate，也不得把 pack 的 `ready` 当作产品发布许可。
+
+全局 workflow projection 同样保持 fail-closed：`QUEUED`、`accepted`、历史
+evidence、advisory sidecar、版本存在性和缺失/冲突的 context 不构成 Session、
+Worker 或 production proof。三代 context 必须全部存在：`context.md` 绑定
+`current`，`context.prev.md` 映射为 `previous`，`context.prev2.md` 映射为
+`previous2`；每一代都校验 `expectedDigest` 与 `digest`。Hooks truth layer 只有
+明确允许的 `pass` 或 `completed` 状态可以形成完成证明；`warn`、`degraded`、
+`partial`、`unknown`、`fail`、`blocked`、`not-run` 及任何未识别状态，包括
+`required=false` 的 layer，都会阻断 eligible projection。官方 CC-Panes
+`0.12.9` 与历史 `0.12.3` 可同时出现在分层版本元数据中，但版本本身不成为
+acceptance gate。Hooks 原生 `completionAllowed`、`truthLayers` 和
+`artifactResults` 仅作合同字段的受限投影，仍由 Hooks 保持权威。
 
 ## Usage
 
