@@ -1,4 +1,4 @@
-# CC-Panes Acceptance Pack
+# Acceptance Pack
 
 `ccpanes-acceptance-pack` 是 CC-Panes Companion 的**文件优先、只读交付证据投影器**。
 它接收 workflow index、verification summary 或 Hooks 原生 acceptance evidence /
@@ -13,8 +13,8 @@ Hooks 仍是 scope、permission、hard gate、audit 和 completion truth 的权�
 
 | 内容 | 权威组件 | 本仓库责任 |
 |---|---|---|
-| 权限、范围、硬门禁、completionAllowed | `D:\cc-pane\tool\repos\hooks` | 原样保留规范化结果，不覆盖 |
-| task/run/evidence/handoff | `D:\ccpanes-method-layer` | 只校验引用身份 |
+| 权限、范围、硬门禁、completionAllowed | Hooks Governance Layer | 原样保留规范化结果，不覆盖 |
+| task/run/evidence/handoff | Method Layer | 只校验引用身份 |
 | Workflow index | `ccpanes-workflow-adapter` | 校验 digest 并消费 |
 | CC-Panes Session/Worker 状态 | 官方 CC-Panes + Companion Coordinator | 不连接、不控制 |
 | acceptance pack | 本仓库 | 只做可追溯组合输出 |
@@ -116,6 +116,12 @@ JSON Schema、隐私规则、身份规则、CLI smoke 和 README。
 贡献提交至少包含：权威边界说明、失败/partial/blocked 语义、隐私影响、schema
 变更、测试命令和与 workflow-adapter 的兼容说明。不得通过“补字段”绕过 Hooks 的
 completion gate，也不得把 pack 的 `ready` 当作产品发布许可。
+
+## License status
+
+This repository currently has no `LICENSE` file. The source is not yet offered
+under a general open-source license; do not assume redistribution rights until
+the maintainer publishes an explicit license and completes source attribution.
 
 ## Usage
 
