@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "ccpanes.acceptance.pack.v1",
-  "title": "CC-Panes Acceptance Pack",
+  "$id": "paneforge.acceptance.pack.v1",
+  "title": "PaneForge Acceptance Pack",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -19,7 +19,7 @@
     "advisoryOnly"
   ],
   "properties": {
-    "schema": { "const": "ccpanes.acceptance.pack.v1" },
+    "schema": { "const": "paneforge.acceptance.pack.v1" },
     "generatedAt": { "type": "string", "format": "date-time" },
     "status": { "enum": ["ready", "partial", "blocked"] },
     "taskId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" },

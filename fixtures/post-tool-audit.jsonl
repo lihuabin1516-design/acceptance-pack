@@ -1,1 +1,1 @@
-{"schema":"ccpanes.audit.event.v1","taskId":"task-fixture","runId":"run-fixture","event":"post-tool-use","result":"pass","safeSummary":"Synthetic post-tool evidence recorded."}
+{"schema":"paneforge.audit.event.v1","taskId":"task-fixture","runId":"run-fixture","event":"post-tool-use","result":"pass","safeSummary":"Synthetic post-tool evidence recorded."}

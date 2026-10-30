@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "ccpanes.acceptance.request.v1",
-  "title": "CC-Panes Acceptance Request",
+  "$id": "paneforge.acceptance.request.v1",
+  "title": "PaneForge Acceptance Request",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "taskId", "runId", "workspaceId", "sources"],
   "properties": {
-    "schema": { "const": "ccpanes.acceptance.request.v1" },
+    "schema": { "const": "paneforge.acceptance.request.v1" },
     "taskId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" },
     "runId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" },
     "workspaceId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" },

@@ -8,15 +8,15 @@ import { composeRequest, explainPack, sha256, validatePack, validateRequest, wri
 
 const digest = "sha256:" + "a".repeat(64);
 const verification = (statuses: Record<string, string> = {}) => ({
-  schema: "ccpanes.verification.summary.v1",
+  schema: "paneforge.verification.summary.v1",
   taskId: "task-001", runId: "run-001",
   checks: Object.fromEntries(["build", "typecheck", "lint", "tests", "smoke", "scope", "privacy"].map(name => [name, { status: statuses[name] ?? "pass", safeSummary: name }])),
   privacy: { secretsStored: false, piiStored: false, fullTranscriptsStored: false }
 });
-const workflow = { schema: "ccpanes.workflow.index.v1", status: "ready", taskId: "task-001", runId: "run-001", advisoryOnly: true };
-const request = (refs: AcceptanceRequest["sources"]): AcceptanceRequest => ({ schema: "ccpanes.acceptance.request.v1", taskId: "task-001", runId: "run-001", workspaceId: "workspace-001", sources: refs });
+const workflow = { schema: "paneforge.workflow.index.v1", status: "ready", taskId: "task-001", runId: "run-001", advisoryOnly: true };
+const request = (refs: AcceptanceRequest["sources"]): AcceptanceRequest => ({ schema: "paneforge.acceptance.request.v1", taskId: "task-001", runId: "run-001", workspaceId: "workspace-001", sources: refs });
 async function setup(files: Record<string, unknown>) {
-  const root = await mkdtemp(join(tmpdir(), "ccpanes-acceptance-"));
+  const root = await mkdtemp(join(tmpdir(), "paneforge-acceptance-"));
   const refs: AcceptanceRequest["sources"] = [];
   for (const [path, value] of Object.entries(files)) {
     const body = typeof value === "string" ? value : JSON.stringify(value);
@@ -70,7 +70,7 @@ test("writes a validated pack atomically", async () => {
 
 test("consumes native hooks acceptance evidence without inventing a parallel check contract", async () => {
   const nativeEvidence = {
-    schema: "ccpanes.acceptance.v1",
+    schema: "paneforge.acceptance.v1",
     taskId: "task-001",
     worktreeRoot: "D:/fixture",
     branch: null,
@@ -100,7 +100,7 @@ test("consumes native hooks acceptance evidence without inventing a parallel che
 
 test("blocks native hooks evidence when a check was not run", async () => {
   const nativeEvidence = {
-    schema: "ccpanes.acceptance.v1", taskId: "task-001", worktreeRoot: "D:/fixture", branch: null, head: null, artifactHashes: [],
+    schema: "paneforge.acceptance.v1", taskId: "task-001", worktreeRoot: "D:/fixture", branch: null, head: null, artifactHashes: [],
     checks: [{ name: "tests", command: "pnpm test", result: "not-run", evidence: "not executed" }],
     truthLayers: [{ name: "completion", state: "not-run", required: true, evidence: "tests:not-run", reason: "complete" }],
     summary: { passed: false, completionAllowed: false, requiredLayerCount: 1, failingLayerCount: 0, blockedLayerCount: 0, notRunLayerCount: 1 },
@@ -115,7 +115,7 @@ test("blocks native hooks evidence when a check was not run", async () => {
 
 test("blocks native hooks verification when an artifact does not match", async () => {
   const nativeVerification = {
-    schema: "ccpanes.acceptance.verify.v1", taskId: "task-001", passed: false,
+    schema: "paneforge.acceptance.verify.v1", taskId: "task-001", passed: false,
     artifactResults: [{ path: "artifact.json", expectedSha256: "A", actualSha256: "B", status: "mismatch" }],
     checkResults: [{ name: "tests", command: "pnpm test", status: "pass", evidence: "passed" }],
     truthLayers: [], summary: { passed: false, completionAllowed: false, requiredLayerCount: 1, failingLayerCount: 1, blockedLayerCount: 0, notRunLayerCount: 0 },
@@ -130,24 +130,24 @@ test("blocks native hooks verification when an artifact does not match", async (
 });
 
 test("publishes a JSON Schema matching the emitted pack contract", async () => {
-  const schema = JSON.parse(await readFile(join(process.cwd(), "schemas", "ccpanes.acceptance.pack.v1.schema.json"), "utf8"));
-  assert.equal(schema.$id, "ccpanes.acceptance.pack.v1");
+  const schema = JSON.parse(await readFile(join(process.cwd(), "schemas", "paneforge.acceptance.pack.v1.schema.json"), "utf8"));
+  assert.equal(schema.$id, "paneforge.acceptance.pack.v1");
   assert.deepEqual(schema.required, ["schema", "generatedAt", "status", "taskId", "runId", "workspaceId", "workflowStatus", "checks", "sources", "blockingReasons", "missingOptional", "advisoryOnly"]);
   assert.equal(schema.properties.status.enum.join(","), "ready,partial,blocked");
   assert.equal(schema.properties.advisoryOnly.const, true);
 });
 
 test("publishes a JSON Schema matching the acceptance request contract", async () => {
-  const schema = JSON.parse(await readFile(join(process.cwd(), "schemas", "ccpanes.acceptance.request.v1.schema.json"), "utf8"));
-  assert.equal(schema.$id, "ccpanes.acceptance.request.v1");
+  const schema = JSON.parse(await readFile(join(process.cwd(), "schemas", "paneforge.acceptance.request.v1.schema.json"), "utf8"));
+  assert.equal(schema.$id, "paneforge.acceptance.request.v1");
   assert.deepEqual(schema.required, ["schema", "taskId", "runId", "workspaceId", "sources"]);
-  assert.equal(schema.properties.schema.const, "ccpanes.acceptance.request.v1");
+  assert.equal(schema.properties.schema.const, "paneforge.acceptance.request.v1");
   assert.deepEqual(schema.properties.sources.items.required, ["kind", "path", "sha256", "required"]);
 });
 
 test("explains a native acceptance pack as stable human-readable text", async () => {
   const data = await setup({ "workflow.json": workflow, "acceptance.json": {
-    schema: "ccpanes.acceptance.v1", taskId: "task-001", worktreeRoot: "D:/fixture", branch: null, head: null, artifactHashes: [],
+    schema: "paneforge.acceptance.v1", taskId: "task-001", worktreeRoot: "D:/fixture", branch: null, head: null, artifactHashes: [],
     checks: [{ name: "tests", command: "pnpm test", result: "pass", evidence: "passed" }],
     truthLayers: [{ name: "completion", state: "pass", required: true, evidence: "all", reason: "complete" }],
     summary: { passed: true, completionAllowed: true, requiredLayerCount: 1, failingLayerCount: 0, blockedLayerCount: 0, notRunLayerCount: 0 },

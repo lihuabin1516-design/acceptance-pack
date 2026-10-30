@@ -1,5 +1,5 @@
 {
-  "schema": "ccpanes.verification.summary.v1",
+  "schema": "paneforge.verification.summary.v1",
   "taskId": "task-fixture",
   "runId": "run-fixture",
   "checks": {

@@ -1,4 +1,4 @@
-# ccpanes-acceptance-pack
+# paneforge-acceptance-pack
 
 This repository owns a read-only acceptance-pack projection. It does not own
 execution, permissions, canonical evidence, session control, or completion

@@ -1,5 +1,5 @@
 {
-  "schema": "ccpanes.acceptance.verify.v1",
+  "schema": "paneforge.acceptance.verify.v1",
   "taskId": "task-fixture",
   "passed": true,
   "artifactResults": [

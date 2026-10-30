@@ -1,5 +1,5 @@
 {
-  "schema": "ccpanes.acceptance.v1",
+  "schema": "paneforge.acceptance.v1",
   "taskId": "task-fixture",
   "worktreeRoot": "D:/synthetic-fixture",
   "branch": null,

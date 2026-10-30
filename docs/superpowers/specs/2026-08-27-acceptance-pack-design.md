@@ -1,4 +1,4 @@
-# CC-Panes Acceptance Pack Design
+# PaneForge Acceptance Pack Design
 
 ## Goal
 
@@ -9,14 +9,14 @@ references into one reviewable delivery artifact.
 ## Authority boundary
 
 The pack is advisory-only. It does not execute checks, decide permissions,
-control CC-Panes sessions, mutate source repositories, publish artifacts, or
+control PaneForge sessions, mutate source repositories, publish artifacts, or
 replace hooks acceptance evidence. Hooks remains the policy and hard-gate
 authority; Method Layer remains the task/run/evidence contract authority;
-official CC-Panes remains the Pane/Session/PTY/Worker runtime authority.
+official PaneForge remains the Pane/Session/PTY/Worker runtime authority.
 
 ## Inputs
 
-The CLI consumes one `ccpanes.acceptance.request.v1` manifest under a caller
+The CLI consumes one `paneforge.acceptance.request.v1` manifest under a caller
 supplied root. The manifest contains:
 
 - `taskId`, `runId`, and a non-sensitive `workspaceId`;
@@ -26,8 +26,8 @@ supplied root. The manifest contains:
 - zero or more audit references with exact SHA-256, format, and required flag.
 
 The local verification summary contains the seven delivery checks. The native
-hooks contracts `ccpanes.acceptance.v1` and
-`ccpanes.acceptance.verify.v1` contribute their checks, required truth layers,
+hooks contracts `paneforge.acceptance.v1` and
+`paneforge.acceptance.verify.v1` contribute their checks, required truth layers,
 artifact verification results, and completion summary directly. The adapter
 does not invent a second acceptance authority.
 
@@ -53,7 +53,7 @@ guessing a pack status.
 
 ## Output
 
-The output schema is `ccpanes.acceptance.pack.v1`. It records identity,
+The output schema is `paneforge.acceptance.pack.v1`. It records identity,
 workspace ID, derived status, workflow status, normalized checks, verified
 source references, typed blocking reasons, missing optional sources, and
 `advisoryOnly: true`. Native hooks inputs additionally contribute normalized

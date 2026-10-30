@@ -7,7 +7,7 @@ type SourceKind = "workflow-index" | "verification-summary" | "acceptance-eviden
 type SourceRef = { kind: SourceKind; path: string; sha256: string; required: boolean };
 
 export interface AcceptanceRequest {
-  schema: "ccpanes.acceptance.request.v1";
+  schema: "paneforge.acceptance.request.v1";
   taskId: string;
   runId: string;
   workspaceId: string;
@@ -15,7 +15,7 @@ export interface AcceptanceRequest {
 }
 
 export interface AcceptancePack {
-  schema: "ccpanes.acceptance.pack.v1";
+  schema: "paneforge.acceptance.pack.v1";
   generatedAt: string;
   status: "ready" | "partial" | "blocked";
   taskId: string;
@@ -52,7 +52,7 @@ function assertRequest(value: unknown): asserts value is AcceptanceRequest {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("INVALID_REQUEST");
   const request = value as Partial<AcceptanceRequest>;
   if (Object.keys(request).some(key => !["schema", "taskId", "runId", "workspaceId", "sources"].includes(key))) throw new Error("INVALID_REQUEST");
-  if (request.schema !== "ccpanes.acceptance.request.v1" || typeof request.taskId !== "string" || !id.test(request.taskId) || typeof request.runId !== "string" || !id.test(request.runId) || typeof request.workspaceId !== "string" || !id.test(request.workspaceId) || !Array.isArray(request.sources) || request.sources.length < 2) throw new Error("INVALID_REQUEST");
+  if (request.schema !== "paneforge.acceptance.request.v1" || typeof request.taskId !== "string" || !id.test(request.taskId) || typeof request.runId !== "string" || !id.test(request.runId) || typeof request.workspaceId !== "string" || !id.test(request.workspaceId) || !Array.isArray(request.sources) || request.sources.length < 2) throw new Error("INVALID_REQUEST");
   const kinds = new Set<SourceKind>();
   for (const source of request.sources) {
     if (!source || typeof source !== "object" || Array.isArray(source)) throw new Error("INVALID_REQUEST");
@@ -105,12 +105,12 @@ function objectValue(value: unknown): Record<string, unknown> {
 function validateIdentity(kind: SourceKind, value: unknown, request: AcceptanceRequest): string | undefined {
   if (kind === "workflow-index") {
     const item = objectValue(value);
-    if (item.schema !== "ccpanes.workflow.index.v1" || item.taskId !== request.taskId || item.runId !== request.runId || typeof item.status !== "string") throw new Error("IDENTITY_CONFLICT");
+    if (item.schema !== "paneforge.workflow.index.v1" || item.taskId !== request.taskId || item.runId !== request.runId || typeof item.status !== "string") throw new Error("IDENTITY_CONFLICT");
     return item.status;
   }
   if (kind === "verification-summary") {
     const item = objectValue(value);
-    if (item.schema !== "ccpanes.verification.summary.v1" || item.taskId !== request.taskId || item.runId !== request.runId) throw new Error("IDENTITY_CONFLICT");
+    if (item.schema !== "paneforge.verification.summary.v1" || item.taskId !== request.taskId || item.runId !== request.runId) throw new Error("IDENTITY_CONFLICT");
     const checks = objectValue(item.checks);
     for (const name of checkNames) {
       const check = objectValue(checks[name]);
@@ -121,12 +121,12 @@ function validateIdentity(kind: SourceKind, value: unknown, request: AcceptanceR
   if (kind === "acceptance-evidence") {
     const item = objectValue(value);
     const summary = objectValue(item.summary);
-    if (item.schema !== "ccpanes.acceptance.v1" || item.taskId !== request.taskId || !Array.isArray(item.checks) || !Array.isArray(item.truthLayers) || typeof summary.completionAllowed !== "boolean") throw new Error("IDENTITY_CONFLICT");
+    if (item.schema !== "paneforge.acceptance.v1" || item.taskId !== request.taskId || !Array.isArray(item.checks) || !Array.isArray(item.truthLayers) || typeof summary.completionAllowed !== "boolean") throw new Error("IDENTITY_CONFLICT");
     return undefined;
   }
   if (kind === "acceptance-verification") {
     const item = objectValue(value);
-    if (item.schema !== "ccpanes.acceptance.verify.v1" || item.taskId !== request.taskId || typeof item.passed !== "boolean" || !Array.isArray(item.checkResults) || !Array.isArray(item.artifactResults)) throw new Error("IDENTITY_CONFLICT");
+    if (item.schema !== "paneforge.acceptance.verify.v1" || item.taskId !== request.taskId || typeof item.passed !== "boolean" || !Array.isArray(item.checkResults) || !Array.isArray(item.artifactResults)) throw new Error("IDENTITY_CONFLICT");
     return undefined;
   }
   const values = Array.isArray(value) ? value : [value];
@@ -209,13 +209,13 @@ export async function composeRequest(request: AcceptanceRequest, root: string, g
 
   if (workflowStatus === "blocked" || workflowStatus === "unknown") blockingReasons.push(`WORKFLOW_${workflowStatus.toUpperCase()}`);
   const status = blockingReasons.length ? "blocked" : (workflowStatus === "ready" && missingOptional.length === 0 ? "ready" : "partial");
-  return { schema: "ccpanes.acceptance.pack.v1", generatedAt, status, taskId: request.taskId, runId: request.runId, workspaceId: request.workspaceId, workflowStatus, checks, ...(completionAllowed === undefined ? {} : { completionAllowed }), ...(truthLayers === undefined ? {} : { truthLayers }), ...(artifactResults === undefined ? {} : { artifactResults }), sources, blockingReasons, missingOptional, advisoryOnly: true };
+  return { schema: "paneforge.acceptance.pack.v1", generatedAt, status, taskId: request.taskId, runId: request.runId, workspaceId: request.workspaceId, workflowStatus, checks, ...(completionAllowed === undefined ? {} : { completionAllowed }), ...(truthLayers === undefined ? {} : { truthLayers }), ...(artifactResults === undefined ? {} : { artifactResults }), sources, blockingReasons, missingOptional, advisoryOnly: true };
 }
 
 export function validatePack(value: unknown): value is AcceptancePack {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const pack = value as Record<string, unknown>;
-  if (pack.schema !== "ccpanes.acceptance.pack.v1" || typeof pack.generatedAt !== "string" || Number.isNaN(Date.parse(pack.generatedAt)) || !["ready", "partial", "blocked"].includes(String(pack.status)) || typeof pack.taskId !== "string" || !id.test(pack.taskId) || typeof pack.runId !== "string" || !id.test(pack.runId) || typeof pack.workspaceId !== "string" || !id.test(pack.workspaceId) || typeof pack.workflowStatus !== "string" || pack.advisoryOnly !== true) return false;
+  if (pack.schema !== "paneforge.acceptance.pack.v1" || typeof pack.generatedAt !== "string" || Number.isNaN(Date.parse(pack.generatedAt)) || !["ready", "partial", "blocked"].includes(String(pack.status)) || typeof pack.taskId !== "string" || !id.test(pack.taskId) || typeof pack.runId !== "string" || !id.test(pack.runId) || typeof pack.workspaceId !== "string" || !id.test(pack.workspaceId) || typeof pack.workflowStatus !== "string" || pack.advisoryOnly !== true) return false;
   if (!pack.checks || typeof pack.checks !== "object" || Array.isArray(pack.checks) || !Object.values(pack.checks).every(status => ["pass", "fail", "blocked", "not-run"].includes(String(status)))) return false;
   if (!Array.isArray(pack.sources) || !pack.sources.every(source => {
     if (!source || typeof source !== "object" || Array.isArray(source)) return false;

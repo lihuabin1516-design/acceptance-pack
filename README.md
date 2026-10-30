@@ -1,9 +1,9 @@
 # Acceptance Pack
 
-`ccpanes-acceptance-pack` 是 CC-Panes Companion 的**文件优先、只读交付证据投影器**。
+`paneforge-acceptance-pack` 是 PaneForge Companion 的**文件优先、只读交付证据投影器**。
 它接收 workflow index、verification summary 或 Hooks 原生 acceptance evidence /
 verification，以及可选 audit 引用，逐个检查路径、SHA-256、身份、隐私字段和检查
-结果，输出可审查的 `ccpanes.acceptance.pack.v1`。
+结果，输出可审查的 `paneforge.acceptance.pack.v1`。
 
 它解决的是“把多个已存在的证据放进一个可交接包”，不是“重新判断系统是否完成”。
 Hooks 仍是 scope、permission、hard gate、audit 和 completion truth 的权威；
@@ -15,8 +15,8 @@ Hooks 仍是 scope、permission、hard gate、audit 和 completion truth 的权�
 |---|---|---|
 | 权限、范围、硬门禁、completionAllowed | Hooks Governance Layer | 原样保留规范化结果，不覆盖 |
 | task/run/evidence/handoff | Method Layer | 只校验引用身份 |
-| Workflow index | `ccpanes-workflow-adapter` | 校验 digest 并消费 |
-| CC-Panes Session/Worker 状态 | 官方 CC-Panes + Companion Coordinator | 不连接、不控制 |
+| Workflow index | `paneforge-workflow-adapter` | 校验 digest 并消费 |
+| PaneForge Session/Worker 状态 | 官方 PaneForge + Companion Coordinator | 不连接、不控制 |
 | acceptance pack | 本仓库 | 只做可追溯组合输出 |
 
 明确不执行命令、不启动进程、不控制 Session/Worker、不决定权限、不存储 transcript、
@@ -24,11 +24,11 @@ Hooks 仍是 scope、permission、hard gate、audit 和 completion truth 的权�
 
 ## 输入合同
 
-请求 schema 为 `ccpanes.acceptance.request.v1`：
+请求 schema 为 `paneforge.acceptance.request.v1`：
 
 ```json
 {
-  "schema": "ccpanes.acceptance.request.v1",
+  "schema": "paneforge.acceptance.request.v1",
   "taskId": "task-example",
   "runId": "run-example",
   "workspaceId": "workspace-example",
@@ -48,7 +48,7 @@ verification-summary、acceptance-evidence 或 acceptance-verification 之一。
 
 ## 输出合同与判定语义
 
-输出 schema 为 `ccpanes.acceptance.pack.v1`，核心字段包括：
+输出 schema 为 `paneforge.acceptance.pack.v1`，核心字段包括：
 
 - `status`: `ready`、`partial`、`blocked`；
 - `workflowStatus`: 来自 workflow index，不由 pack 重写；

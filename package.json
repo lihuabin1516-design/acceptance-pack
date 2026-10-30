@@ -1,11 +1,11 @@
 {
-  "name": "ccpanes-acceptance-pack",
+  "name": "paneforge-acceptance-pack",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Read-only acceptance evidence pack for CC-Panes workflows.",
+  "description": "Read-only acceptance evidence pack for PaneForge workflows.",
   "main": "dist/src/index.js",
-  "bin": { "ccpanes-acceptance": "dist/src/cli.js" },
+  "bin": { "paneforge-acceptance": "dist/src/cli.js" },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
