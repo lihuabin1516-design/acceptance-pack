@@ -2,6 +2,7 @@
   "name": "ccpanes-acceptance-pack",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Read-only acceptance evidence pack for CC-Panes workflows.",
   "main": "dist/src/index.js",
   "bin": { "ccpanes-acceptance": "dist/src/cli.js" },

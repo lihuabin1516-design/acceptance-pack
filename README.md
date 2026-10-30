@@ -117,11 +117,11 @@ JSON Schema、隐私规则、身份规则、CLI smoke 和 README。
 变更、测试命令和与 workflow-adapter 的兼容说明。不得通过“补字段”绕过 Hooks 的
 completion gate，也不得把 pack 的 `ready` 当作产品发布许可。
 
-## License status
+## License
 
-This repository currently has no `LICENSE` file. The source is not yet offered
-under a general open-source license; do not assume redistribution rights until
-the maintainer publishes an explicit license and completes source attribution.
+Original project materials are licensed under the MIT License; see [`LICENSE`](./LICENSE).
+Third-party dependencies remain under their respective licenses. The npm package
+is marked `private` and is not currently published to the npm registry.
 
 ## Usage
 
